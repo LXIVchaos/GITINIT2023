@@ -1,57 +1,39 @@
-from chatterbot import ChatBot
-from chatterbot.trainers import ListTrainer
-from chatterbot.trainers import ChatterBotCorpusTrainer
-import random
-import fileStreaming
-import os
+import discord
+import chatbots
 
-#helper method removing the .json extension from a filename (needed for convenient files)
-def removeExtension(fileName):
-    return fileName[:fileName.find(".")]
+currentBot = chatbots.bots["Trollbot"]
 
-#loading settings from the userSettings save file
-settings = fileStreaming.readJsonFile("userSettings.json")
+#setting up the discord infrastructure
+class BotClient(discord.Client):
+    async def on_message(self, message): #should the bot be pinged in any way, it will respond to the user.
+        if message.author == self.user:
+            return
 
-#AI chatbot that will talk based on
-class AISpeaker:
-    def __init__(self, name):
-        self.name = name
-
-        #streaming text file data
-        jdata = fileStreaming.readJsonFile(f"bots\\{name}.json")
-
-        #load training data onto the AI speaker
-        self.chatbot = ChatBot(name)
-        self.listTrainer = ListTrainer(self.chatbot)
-        self.listTrainer.train(jdata)
-
-        #adding extra linguistic abilities to the bot
-        self.corpusTrainer = ChatterBotCorpusTrainer(self.chatbot)
-        self.corpusTrainer.train("chatterbot.corpus.english")
-
-    #responds to the previous message in a conversation
-    def query(self, lastMessage):
-        response = self.chatbot.get_response(lastMessage)
-        return response
+        doResponse = False
         
-#loading every bot onto the application
-bots = {}
-for fileName in os.listdir("bots"):
-    botName = removeExtension(fileName)
-    bots[botName] = AISpeaker(botName)
+        #check if the bot was pinged in the message
+        for member in message.mentions:
+            if member == self.user:
+                doResponse = True
+                break
 
-print("Type in 'help' for information about this program!")
+        #check if said message was a reply to the bot
+        reference = message.reference
+        if reference != None:
+            rm = reference.cached_message
+            if rm == None:
+                channel = self.get_channel(reference.channel_id)
+                rm = await channel.fetch_message(reference.message_id)
 
-while True: #main loop of the program
-    message = input("> ")
+            if rm.author == self.user:
+                doResponse = True
 
-    if message == "help":
-        pass
-    elif message == "newchat":
-        pass
-    elif message == "name":
-        pass
-    elif message == "exit keyword": #set the exit keyword to something
-        pass
-    elif message == settings["exitcwd"]: #exit the program
-        quit()
+        if doResponse: #respond to the message based on the data being fed
+            await message.reply(currentBot.query(message.content))
+        else:
+            pass
+
+#logging the bot onto discord
+botToken = "MTA2MTM4MDUyNTQwNDcyOTM0NA.GLfkX1.cJkirrxUu2eYEvag8npFLUDbFJvkReNsrdWxp4"
+botClient = BotClient()
+botClient.run(botToken)
