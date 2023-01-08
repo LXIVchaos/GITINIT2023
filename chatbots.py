@@ -1,3 +1,5 @@
+#RUNNING THIS FILE WILL RESULT IN ALL BOTS BEING RETRAINED FROM SCRATCH
+
 from chatterbot import ChatBot
 from chatterbot.trainers import ListTrainer
 from chatterbot.trainers import ChatterBotCorpusTrainer
@@ -15,12 +17,13 @@ settings = fileStreaming.readJsonFile("userSettings.json")
 class AISpeaker:
     def __init__(self, name):
         self.name = name
+        self.chatbot = ChatBot(name)
 
+    def train(self):
         #streaming text file data
-        jdata = fileStreaming.readJsonFile(f"bots\\{name}.json")
+        jdata = fileStreaming.readJsonFile(f"bots\\{self.name}.json")
 
         #load training data onto the AI speaker
-        self.chatbot = ChatBot(name)
         self.listTrainer = ListTrainer(self.chatbot)
         self.listTrainer.train(jdata)
 
@@ -42,3 +45,9 @@ def importBot(fileName):
 for fileName in os.listdir("bots"):
     botName = removeExtension(fileName)
     bots[botName] = AISpeaker(botName)
+
+#retraining the bots if running the file directly
+if __name__ == "__main__":
+    for bot in bots:
+        print(bot)
+        bots[bot].train()
