@@ -43,8 +43,8 @@ class BotClient(commands.Bot):
 botClient = BotClient(command_prefix = "!", intents = discord.Intents.all())
 
 @botClient.tree.command(name = "mode", description = "Change the bot's behavior to a specified setting.")
-@discord.app_commands.describe(testparam = "testparam")
-async def mode_command(interaction, testparam: str): #changes which AI is being used to chat
+@discord.app_commands.describe(mode = "mode")
+async def mode_command(interaction, mode: str): #changes which AI is being used to chat
     if testparam in chatbots.bots:
         global currentBot
         currentBot = testparam
@@ -71,5 +71,5 @@ async def info_command(interaction): #returns a list of all the loaded bots
     await interaction.response.send_message(embed = embed)
 
 #logging the bot onto discord
-botToken = "MTA2MTM4MDUyNTQwNDcyOTM0NA.GLfkX1.cJkirrxUu2eYEvag8npFLUDbFJvkReNsrdWxp4"
+botToken = ""
 botClient.run(botToken)
